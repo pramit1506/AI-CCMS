@@ -15,7 +15,7 @@ export const ToolExecutionCard: React.FC<ToolExecutionCardProps> = ({ executions
     id: `tool-exec-${index}-${Date.now()}`,
     timestamp: new Date().toISOString(), // In a real app, this should come from backend
     title: exec.tool_name,
-    description: exec.error || (exec.status === 'success' ? 'CRM updated successfully' : undefined),
+    description: exec.error || (exec.status === 'success' ? 'Complaint updated successfully' : undefined),
     status: exec.status
   }));
 

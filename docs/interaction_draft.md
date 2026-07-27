@@ -1,10 +1,10 @@
-# Interaction Draft
+# Complaint Draft
 
-The Interaction Draft represents the AI's current, evolving understanding of the interaction between an HCP and a user throughout a conversational session. It serves as the single source of truth for the session state and will eventually populate the React UI form on the frontend.
+The Complaint Draft represents the AI's current, evolving understanding of the complaint between an Customer and a user throughout a conversational session. It serves as the single source of truth for the session state and will eventually populate the React UI form on the frontend.
 
 ## Architecture & Lifecycle
 
-1. **Initialization**: When a conversation starts or a new intent indicates interaction logging, an `InteractionDraft` is instantiated. It is added to the `GraphState`. The draft is a pure Pydantic model (`app.schemas.draft.InteractionDraft`).
+1. **Initialization**: When a conversation starts or a new intent indicates complaint logging, an `InteractionDraft` is instantiated. It is added to the `GraphState`. The draft is a pure Pydantic model (`app.schemas.draft.InteractionDraft`).
 2. **Updates & Extraction**: As the conversation progresses, new information is extracted by the LLM. This information is merged into the draft using `app.services.draft_service.DraftService`.
 3. **DraftService (Immutability)**: Every operation (`merge`, `update_field`, `remove_field`, `correct_field`) via the `DraftService` returns a `DraftUpdateResult` containing a fresh `InteractionDraft` copy, the list of `changed_fields`, and a `merge_summary`. This guarantees immutability, which is essential for deterministic LangGraph state transitions.
 4. **Validation & Status**: `DraftService.validate(draft)` analyzes the draft against strictly required and optional fields. It automatically derives a `DraftStatus` (`EMPTY`, `PARTIAL`, `READY`, `CONFIRMED`, `SAVED`).

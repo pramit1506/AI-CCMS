@@ -1,19 +1,19 @@
-# AI-First CRM - HCP Interaction Module
+# AIVOA Customer Complaint Management System
 
-This project is an AI-first CRM module for logging Healthcare Professional (HCP) interactions through a conversational assistant.
+This project is an AI-first CCMS module for logging customer complaints through a conversational assistant.
 
-The application has a React frontend with a live interaction details panel and a FastAPI backend powered by LangGraph and Groq. The assistant extracts structured CRM fields from natural language, asks clarification questions when information is missing, updates the draft in real time, and executes workflow tools once the interaction is ready.
+The application has a React frontend with a live complaint details panel and a FastAPI backend powered by LangGraph and Groq. The assistant extracts structured CCMS fields from natural language, asks clarification questions when information is missing, updates the draft in real time, and executes workflow tools once the complaint is ready.
 
 ## Features
 
-- Conversational HCP interaction logging
-- Live interaction draft updates in the frontend
+- Conversational customer complaint logging
+- Live complaint draft updates in the frontend
 - Multi-turn clarification flow for missing required fields
-- Safe multi-interaction handling
-- Editing of the active logged interaction
+- Safe multi-complaint handling
+- Editing of the active logged complaint
 - Follow-up date and action generation
-- Interaction summarization
-- Compliance checking for completed interactions
+- Complaint summarization
+- Compliance checking for completed complaints
 - Backend test coverage for graph, tools, services, APIs, and workflows
 
 ## Tech Stack
@@ -29,16 +29,16 @@ The application has a React frontend with a live interaction details panel and a
 
 The backend registers five LangGraph tools:
 
-- `log_interaction`: creates a new HCP interaction record
-- `edit_interaction`: updates the active interaction record
-- `generate_followup`: generates follow-up actions from interaction context
-- `summarize_interaction`: creates a concise interaction summary
-- `compliance_check`: checks interaction content for compliance issues
+- `log_interaction`: creates a new customer complaint record
+- `edit_interaction`: updates the active complaint record
+- `generate_followup`: generates follow-up actions from complaint context
+- `summarize_interaction`: creates a concise complaint summary
+- `compliance_check`: checks complaint content for compliance issues
 
 ## Project Structure
 
 ```text
-AI HCP/
+AI CCMS/
   backend/
     app/
       api/              FastAPI routes
@@ -142,7 +142,7 @@ Run backend tests:
 
 ```powershell
 cd backend
-$env:PYTHONPATH="E:\AI HCP\backend"
+$env:PYTHONPATH="E:\AI Customer\backend"
 pytest
 ```
 
@@ -170,10 +170,10 @@ Current verification status:
 
 1. Start the backend and frontend.
 2. Open the frontend at `http://127.0.0.1:5173`.
-3. Ask the assistant to log an interaction, for example:
+3. Ask the assistant to log an complaint, for example:
 
 ```text
-Log an interaction with Dr. Verma.
+Log an complaint with Customer.
 ```
 
 4. Answer clarification questions naturally:
@@ -184,9 +184,9 @@ It was a phone call.
 We discussed reports and suggested medications. It is completed.
 ```
 
-5. Show the left-side interaction draft updating live.
-6. Let `log_interaction` execute and show the CRM success state.
-7. Edit the active interaction:
+5. Show the left-side complaint draft updating live.
+6. Let `log_interaction` execute and show the CCMS success state.
+7. Edit the active complaint:
 
 ```text
 Add a follow-up in 15 days.
@@ -195,21 +195,21 @@ Add a follow-up in 15 days.
 8. Demonstrate the remaining tools:
 
 ```text
-Generate a follow-up for this interaction.
-Summarize this interaction.
+Generate a follow-up for this complaint.
+Summarize this complaint.
 Run a compliance check.
 ```
 
-9. To start a second interaction, use explicit wording:
+9. To start a second complaint, use explicit wording:
 
 ```text
-Log another interaction with Dr. Sharma.
+Log another complaint with Customer.
 ```
 
-The app intentionally keeps the current interaction active unless the user clearly asks to log another/new interaction or answers yes when prompted.
+The app intentionally keeps the current complaint active unless the user clearly asks to log another/new complaint or answers yes when prompted.
 
 ## Notes
 
-- Required fields for logging an interaction include HCP information, date, interaction type, status, and discussion summary.
+- Required fields for logging an complaint include customer information, date, complaint type, status, and discussion summary.
 - The assistant asks clarification questions instead of creating incomplete records.
-- After an interaction is logged, edits and follow-ups stay attached to the active interaction unless the user explicitly starts a new one.
+- After an complaint is logged, edits and follow-ups stay attached to the active complaint unless the user explicitly starts a new one.

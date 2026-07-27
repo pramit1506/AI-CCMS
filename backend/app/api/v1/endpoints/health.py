@@ -9,7 +9,7 @@ router = APIRouter()
 def read_root():
     return APIResponse(
         success=True,
-        message="Welcome to the AI-First CRM API",
+        message="Welcome to the AIVOA CCMS API",
         data={
             "project_name": settings.PROJECT_NAME,
             "version": settings.API_VERSION

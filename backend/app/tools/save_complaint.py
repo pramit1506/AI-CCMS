@@ -13,7 +13,7 @@ from app.schemas.customer import CustomerCreate
 from app.services.customer_service import customer_service
 
 class SaveComplaintInput(BaseModel):
-    customer_id: Optional[str] = Field(None, description="The UUID or business identifier of the customer/hospital.")
+    customer_id: Optional[str] = Field(None, description="The UUID or business identifier of the customer/clinic.")
     customer_name: Optional[str] = Field(None, description="The name of the customer.")
     complaint_source: ComplaintSource = Field(..., description="The source of the complaint.")
     product_name: str = Field(..., description="The product name.")

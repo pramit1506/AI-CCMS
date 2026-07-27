@@ -20,8 +20,8 @@ def print_res(res):
 if __name__ == "__main__":
     print("Starting manual verification...")
     
-    # Scenario 1: Log interaction with Dr. Verma, partial fields
-    payload = {"user_message": "Log an interaction with Dr. Verma."}
+    # Scenario 1: Log complaint with Customer, partial fields
+    payload = {"user_message": "Log an complaint with Customer."}
     print("Turn 1: User:", payload["user_message"])
     try:
         res = requests.post(URL, json=payload)
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         exit(1)
     
     # Scenario 1: provide "Completed"
-    payload = {"conversation_id": conv_id, "user_message": "We discussed the new drug. Status is completed. Interaction was today over email."}
+    payload = {"conversation_id": conv_id, "user_message": "We discussed the new drug. Status is completed. Complaint was today over email."}
     print("Turn 2: User:", payload["user_message"])
     res = requests.post(URL, json=payload)
     print_res(res)

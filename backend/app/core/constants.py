@@ -3,7 +3,7 @@ Reusable application constants.
 """
 
 # Application
-APP_NAME = "AI HCP Interaction Logging API"
+APP_NAME = "AI Complaint Intake Logging API"
 DEFAULT_TIMEOUT = 30
 DEFAULT_PAGINATION_LIMIT = 20
 

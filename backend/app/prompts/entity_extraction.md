@@ -11,7 +11,7 @@ Your primary goal is to extract structured complaint entities from the user's na
 7. **Risk Assessment**: For every complaint, you MUST generate an AI Co-pilot Risk Assessment based on reasoning. Assess the complaint text and generate `risk_classification` (e.g. "Critical - Patient Safety Risk", "Minor - Aesthetic Issue"), provide a `root_cause_recommendation`, a `capa_recommendation` (Corrective and Preventive Action), and detail your `risk_reasoning`. Also map `initial_severity` and `priority` based on this reasoning. 
 
 ### QMS Field Mapping Guide:
-- `customer_name`: The name of the customer, reporter, hospital, or HCP.
+- `customer_name`: The name of the customer, reporter, clinic, or Staff.
 - `complaint_source`: Source of complaint. Valid options: "EMAIL", "CALL", "PDF", "PORTAL", "TEXT".
 - `product_name`: The name of the pharmaceutical product.
 - `product_strength`: The strength or grade of the product (e.g., "500mg").

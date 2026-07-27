@@ -80,7 +80,7 @@ class ConversationMemoryService:
 
     async def resolve_context(self, conversation_id: str, user_message: str) -> ResolvedContext:
         """
-        Attempts to resolve references (like 'him', 'that meeting') using previous conversation context.
+        Attempts to resolve references (like 'him', 'that complaint') using previous conversation context.
         Returns a ResolvedContext with confidence score.
         """
         summary = await self.get_summary(conversation_id)
@@ -90,7 +90,7 @@ class ConversationMemoryService:
         # In a fully realized system, we would ask the LLM to resolve references:
         llm = get_llm_provider()
         prompt = (
-            "Given the user's message, resolve any ambiguous references (e.g. 'him', 'it', 'yesterday's meeting') "
+            "Given the user's message, resolve any ambiguous references (e.g. 'him', 'it', 'yesterday's complaint') "
             "using the current conversation summary and recent messages.\n"
             f"User Message: {user_message}\n"
             f"Summary: {summary.model_dump_json() if summary else 'None'}\n"

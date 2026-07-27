@@ -202,8 +202,8 @@ def _fallback_extract_fields(message: str, update_mode: bool = False) -> Dict[st
 
     customer = _first_match([
         r"^\s*([A-Z][A-Za-z0-9 &.'-]+?)\s+reported\b",
-        r"(?:customer|reported by|reporter|hospital|from)\s*(?:name)?\s*[:\-]\s*([^\n,]+)",
-        r"(?:customer|hospital)\s+([A-Z][A-Za-z0-9 &.'-]+)",
+        r"(?:customer|reported by|reporter|clinic|from)\s*(?:name)?\s*[:\-]\s*([^\n,]+)",
+        r"(?:customer|clinic)\s+([A-Z][A-Za-z0-9 &.'-]+)",
     ], text)
     if customer:
         fields["customer_name"] = customer

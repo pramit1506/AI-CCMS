@@ -8,7 +8,7 @@ class ExtractionOutput(BaseModel):
     """
     extracted_fields: Dict[str, Any] = Field(
         default_factory=dict,
-        description="Newly extracted or explicitly updated CRM fields. Only include fields that were explicitly mentioned or strongly implied."
+        description="Newly extracted or explicitly updated Complaint fields. Only include fields that were explicitly mentioned or strongly implied."
     )
     corrections: Dict[str, Any] = Field(
         default_factory=dict,

@@ -215,10 +215,10 @@ class AgentDecisionService:
                         if metadata.get("active_complaint_id"):
                             pending_tool_name = "edit_complaint"
                 elif intent == "edit_complaint":
-                    logger.info(f"[{state.get('request_id')}] DecisionService: Editing the active completed interaction.")
+                    logger.info(f"[{state.get('request_id')}] DecisionService: Editing the active completed complaint.")
                     pending_tool_name = intent
                 elif intent in ["conversation", "unknown", "Unknown"] and self._is_yes_to_new_interaction_prompt(user_message, metadata):
-                    logger.info(f"[{state.get('request_id')}] DecisionService: User accepted prompt to start another interaction.")
+                    logger.info(f"[{state.get('request_id')}] DecisionService: User accepted prompt to start another complaint.")
                     reset_context = True
                     pending_tool_name = "save_complaint"
                     use_latest_extracted_for_reset = False

@@ -1,6 +1,6 @@
 # Conversation API
 
-The AI-First Conversation API provides a unified interface for the frontend React application to interact with the backend CRM workflow. It is designed so that every chat interaction automatically returns both the conversational response and the latest structured CRM state.
+The AI-First Conversation API provides a unified interface for the frontend React application to interact with the backend CCMS workflow. It is designed so that every chat complaint automatically returns both the conversational response and the latest structured CCMS state.
 
 ## Response Lifecycle
 
@@ -83,7 +83,7 @@ When the user explicitly approves an action or provides enough context for a pla
 - `conversation_status` transitions to `EXECUTING_TOOL` or `COMPLETED`.
 - `tool_execution_result` becomes populated, containing:
   - `status`: "success" or "error"
-  - `created_resource_id`: The ID of the CRM object created.
+  - `created_resource_id`: The ID of the CCMS object created.
   - `success_message`: A backend confirmation message.
   - `validation_warnings`: Any non-blocking compliance or data warnings.
 

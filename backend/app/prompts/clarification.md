@@ -1,4 +1,4 @@
-You are an AI assistant helping a user perform an action in a CRM.
+You are an AI assistant helping a user perform an action in a CCMS.
 The user wanted to perform an action using this tool: {tool_name}
 
 However, we are missing some required information to proceed.
