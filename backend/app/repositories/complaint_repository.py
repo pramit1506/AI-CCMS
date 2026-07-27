@@ -4,13 +4,13 @@ from datetime import date
 from sqlalchemy import select, func, asc, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.base_repository import BaseRepository
-from app.models.interaction import Interaction
-from app.schemas.interaction import InteractionCreate, InteractionUpdate
-from app.shared.enums import InteractionStatus, InteractionType
+from app.models.complaint import Complaint
+from app.schemas.complaint import ComplaintCreate, ComplaintUpdate
+from app.shared.enums import ComplaintStatus, ComplaintSource, Severity, Priority
 
-class RepositoryInteraction(BaseRepository[Interaction, InteractionCreate, InteractionUpdate]):
-    async def get_by_interaction_number(self, db: AsyncSession, interaction_number: str) -> Optional[Interaction]:
-        query = select(self.model).where(self.model.interaction_number == interaction_number)
+class RepositoryComplaint(BaseRepository[Complaint, ComplaintCreate, ComplaintUpdate]):
+    async def get_by_complaint_number(self, db: AsyncSession, complaint_number: str) -> Optional[Complaint]:
+        query = select(self.model).where(self.model.complaint_number == complaint_number)
         result = await db.execute(query)
         return result.scalar_one_or_none()
 
@@ -20,28 +20,28 @@ class RepositoryInteraction(BaseRepository[Interaction, InteractionCreate, Inter
         *,
         skip: int = 0,
         limit: int = 100,
-        hcp_id: Optional[UUID] = None,
+        customer_id: Optional[UUID] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
-        status: Optional[InteractionStatus] = None,
-        interaction_type: Optional[InteractionType] = None,
-        sort_by: str = "interaction_date",
+        status: Optional[ComplaintStatus] = None,
+        complaint_source: Optional[ComplaintSource] = None,
+        sort_by: str = "complaint_date",
         sort_desc: bool = True
-    ) -> tuple[List[Interaction], int]:
+    ) -> tuple[List[Complaint], int]:
         query = select(self.model)
         
-        if hcp_id:
-            query = query.where(self.model.hcp_id == hcp_id)
+        if customer_id:
+            query = query.where(self.model.customer_id == customer_id)
         if start_date:
-            query = query.where(self.model.interaction_date >= start_date)
+            query = query.where(self.model.complaint_date >= start_date)
         if end_date:
-            query = query.where(self.model.interaction_date <= end_date)
+            query = query.where(self.model.complaint_date <= end_date)
         if status:
             query = query.where(self.model.status == status)
-        if interaction_type:
-            query = query.where(self.model.interaction_type == interaction_type)
+        if complaint_source:
+            query = query.where(self.model.complaint_source == complaint_source)
             
-        sort_column = getattr(self.model, sort_by, self.model.interaction_date)
+        sort_column = getattr(self.model, sort_by, self.model.complaint_date)
         if sort_desc:
             query = query.order_by(desc(sort_column))
         else:
@@ -56,4 +56,4 @@ class RepositoryInteraction(BaseRepository[Interaction, InteractionCreate, Inter
         
         return list(result.scalars().all()), total
 
-interaction_repository = RepositoryInteraction(Interaction)
+complaint_repository = RepositoryComplaint(Complaint)

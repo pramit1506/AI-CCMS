@@ -1,6 +1,6 @@
 import React from 'react';
 import { Header } from './Header';
-import { InteractionDetails } from '../Interaction/InteractionDetails';
+import { ComplaintDetails } from '../Complaint/ComplaintDetails';
 import { ChatPanel } from '../Chat/ChatPanel';
 import './Layout.css';
 
@@ -10,7 +10,7 @@ export const AppLayout: React.FC = () => {
       <Header />
       <main className="app-main">
         <section className="left-panel">
-          <InteractionDetails />
+          <ComplaintDetails />
         </section>
         <section className="right-panel">
           <ChatPanel />

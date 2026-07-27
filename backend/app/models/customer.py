@@ -5,16 +5,13 @@ from app.database.base import Base
 from app.database.mixins import UUIDMixin, TimestampMixin
 
 if TYPE_CHECKING:
-    from app.models.interaction import Interaction
+    from app.models.complaint import Complaint
 
-class HCP(UUIDMixin, TimestampMixin, Base):
-    __tablename__ = "hcp"
+class Customer(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "customer"
 
-    hcp_code: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    first_name: Mapped[str] = mapped_column(String(100))
-    last_name: Mapped[str] = mapped_column(String(100))
-    specialization: Mapped[str | None] = mapped_column(String(100))
-    hospital_name: Mapped[str | None] = mapped_column(String(200))
+    customer_code: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    customer_name: Mapped[str] = mapped_column(String(200))
     email: Mapped[str | None] = mapped_column(String(150))
     phone: Mapped[str | None] = mapped_column(String(50))
     city: Mapped[str | None] = mapped_column(String(100))
@@ -23,6 +20,6 @@ class HCP(UUIDMixin, TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    interactions: Mapped[List["Interaction"]] = relationship(
-        "Interaction", back_populates="hcp", cascade="all, delete-orphan"
+    complaints: Mapped[List["Complaint"]] = relationship(
+        "Complaint", back_populates="customer", cascade="all, delete-orphan"
     )

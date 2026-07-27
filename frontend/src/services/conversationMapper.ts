@@ -1,11 +1,11 @@
 import { ConversationResponse } from '../types/chat';
 import { ClarificationPayload, ToolExecutionEvent } from '../types/agent';
-import { InteractionDraft } from '../types/interaction';
+import { ComplaintDraft } from '../types/complaint';
 
 export interface MappedConversation {
   assistantMessage: string;
   conversationId: string;
-  interactionDraft: InteractionDraft | null;
+  complaintDraft: ComplaintDraft | null;
   updatedFields: string[];
   clarificationRequired: ClarificationPayload | null;
   toolExecution: ToolExecutionEvent | null;
@@ -16,7 +16,7 @@ export const conversationMapper = {
   mapResponse(response: ConversationResponse): MappedConversation {
     const legacyResponse = response as any;
     const assistantMessage = response.assistant_message || legacyResponse.response || '';
-    const interactionDraft = response.interaction_draft || legacyResponse.interaction_updates || null;
+    const complaintDraft = response.complaint_draft || legacyResponse.complaint_updates || null;
     const draftChanges = response.draft_changes || [];
 
     let clarificationRequired: ClarificationPayload | null = null;
@@ -29,14 +29,19 @@ export const conversationMapper = {
     );
 
     if (clarificationState && clarificationIsActive) {
+      const missingField = clarificationState.missing_fields.length > 0 ? clarificationState.missing_fields[0] : undefined;
+      const fallbackQuestion = missingField
+        ? `Please provide the ${missingField.replace(/_/g, ' ')}.`
+        : assistantMessage || 'Please provide the missing complaint detail.';
+
       clarificationRequired = {
         required: true,
         question:
           response.decision_output?.clarification_message ||
           clarificationState.clarification_reason ||
-          'Please clarify your request.',
+          fallbackQuestion,
         options: [], // Frontend ClarificationCard uses options if provided
-        field_name: clarificationState.missing_fields.length > 0 ? clarificationState.missing_fields[0] : undefined
+        field_name: missingField
       };
     }
 
@@ -64,14 +69,14 @@ export const conversationMapper = {
 
     const updatedFields = draftChanges.length
       ? draftChanges.map(change => change.field_name)
-      : legacyResponse.interaction_updates
-        ? Object.keys(legacyResponse.interaction_updates).filter((key) => legacyResponse.interaction_updates[key] !== null)
+      : legacyResponse.complaint_updates
+        ? Object.keys(legacyResponse.complaint_updates).filter((key) => legacyResponse.complaint_updates[key] !== null)
         : [];
 
     return {
       assistantMessage,
       conversationId: response.conversation_id,
-      interactionDraft,
+      complaintDraft,
       updatedFields,
       clarificationRequired,
       toolExecution,

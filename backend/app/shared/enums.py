@@ -7,18 +7,30 @@ class PlaceholderEnum(str, Enum):
     PLACEHOLDER = "placeholder"
 
 
-class InteractionStatus(str, Enum):
-    PLANNED = "PLANNED"
-    COMPLETED = "COMPLETED"
-    CANCELLED = "CANCELLED"
-    NO_SHOW = "NO_SHOW"
+class ComplaintStatus(str, Enum):
+    PENDING_TRIAGE = "PENDING_TRIAGE"
+    IN_PROGRESS = "IN_PROGRESS"
+    CLOSED = "CLOSED"
 
 
-class InteractionType(str, Enum):
+class ComplaintSource(str, Enum):
     EMAIL = "EMAIL"
-    IN_PERSON = "IN_PERSON"
-    VIRTUAL = "VIRTUAL"
-    PHONE = "PHONE"
+    CALL = "CALL"
+    PDF = "PDF"
+    PORTAL = "PORTAL"
+    TEXT = "TEXT"
+
+
+class Severity(str, Enum):
+    CRITICAL = "CRITICAL"
+    MAJOR = "MAJOR"
+    MINOR = "MINOR"
+
+
+class Priority(str, Enum):
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
 
 
 class DraftStatus(str, Enum):
@@ -47,11 +59,11 @@ class AgentState(str, Enum):
     COMPLETED = "COMPLETED"
 
 class ToolName(str, Enum):
-    LOG_INTERACTION = "log_interaction"
-    EDIT_INTERACTION = "edit_interaction"
-    GENERATE_FOLLOWUP = "generate_followup"
-    SUMMARIZE_INTERACTION = "summarize_interaction"
-    COMPLIANCE_CHECKER = "compliance_check"
+    SAVE_COMPLAINT = "save_complaint"
+    EDIT_COMPLAINT = "edit_complaint"
+    RECOMMEND_CAPA = "recommend_capa"
+    SUMMARIZE_COMPLAINT = "summarize_complaint"
+    COMPLETENESS_CHECKER = "completeness_check"
 
 class ConversationStatus(str, Enum):
     COLLECTING_INFORMATION = "COLLECTING_INFORMATION"

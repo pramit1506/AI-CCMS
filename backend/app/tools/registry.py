@@ -17,7 +17,10 @@ class ToolRegistry:
         
     def get_tool(self, name: str) -> Optional[BaseTool]:
         """Retrieve a tool by name."""
-        return self._tools.get(name)
+        if name is None:
+            return None
+        key = name.value if hasattr(name, "value") else str(name)
+        return self._tools.get(key)
         
     def get_all_tools(self) -> List[BaseTool]:
         """Get all registered tools."""

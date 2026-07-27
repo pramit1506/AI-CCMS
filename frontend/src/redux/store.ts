@@ -1,13 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import uiReducer from './uiSlice';
-import interactionReducer from './interactionSlice';
+import complaintReducer from './complaintSlice';
 import chatReducer from './chatSlice';
 import agentReducer from './agentSlice';
 
 export const store = configureStore({
   reducer: {
     ui: uiReducer,
-    interaction: interactionReducer,
+    complaint: complaintReducer,
     chat: chatReducer,
     agent: agentReducer,
   },

@@ -4,9 +4,10 @@ from app.graph.state import GraphState
 from app.llm.factory import get_llm_provider
 from app.prompts.loader import load_prompt
 from app.schemas.decision import DecisionOutput
-from app.schemas.draft import InteractionDraft
+from app.schemas.draft import ComplaintDraft
 from app.shared.enums import AgentAction
 from app.services.context_builder import context_builder
+from app.core.config import settings
 from loguru import logger
 
 class AgentDecisionService:
@@ -27,6 +28,7 @@ class AgentDecisionService:
             "go ahead",
             "execute",
             "save",
+            "save complaint",
             "log it",
             "yes execute",
             "yes, execute",
@@ -38,8 +40,8 @@ class AgentDecisionService:
     def _is_new_interaction_request(self, message: str) -> bool:
         normalized = self._normalize_message(message)
         explicit_phrases = [
-            "another interaction",
-            "new interaction",
+            "another complaint",
+            "new complaint",
             "log another",
             "log a new",
             "start another",
@@ -53,7 +55,7 @@ class AgentDecisionService:
 
     def _is_yes_to_new_interaction_prompt(self, message: str, metadata: Dict[str, Any]) -> bool:
         normalized = self._normalize_message(message)
-        return bool(metadata.get("awaiting_new_interaction_decision")) and normalized in {
+        return bool(metadata.get("awaiting_new_complaint_decision")) and normalized in {
             "yes",
             "y",
             "yeah",
@@ -69,9 +71,9 @@ class AgentDecisionService:
         
         # Prepare context for the prompt
         intent = state.get("detected_intent", "Unknown")
-        current_draft = state.get("interaction_draft")
+        current_draft = state.get("complaint_draft")
         if not current_draft:
-            current_draft = InteractionDraft()
+            current_draft = ComplaintDraft()
             
         from app.services.draft_service import DraftService
         draft_service = DraftService()
@@ -123,8 +125,7 @@ class AgentDecisionService:
         required_missing = validation_info["required_missing"]
         optional_missing = validation_info["optional_missing"]
         
-        # Map hcp_id to HCP for the prompt context to generate better wording
-        prompt_required_missing = ["HCP" if f == "hcp_id" else f for f in required_missing]
+        prompt_required_missing = required_missing
         
         # We need to serialize the draft properly
         draft_json = current_draft.model_dump_json(indent=2)
@@ -140,6 +141,43 @@ class AgentDecisionService:
             f"Pending Tool: {pending_tool_name}\n"
             f"\n{builder_context}"
         )
+
+        if settings.DEMO_OFFLINE_MODE or metadata.get("llm_unavailable"):
+            from app.shared.enums import ToolReadiness, AgentState, ToolName
+
+            is_tool_intent = tool_registry.get_tool(str(pending_tool_name)) is not None if pending_tool_name else False
+            selected_tool = None
+            if is_tool_intent:
+                try:
+                    selected_tool = ToolName(str(pending_tool_name))
+                except ValueError:
+                    selected_tool = None
+
+            if not is_tool_intent or intent in ["conversation", "unknown", "Unknown"]:
+                action = AgentAction.RESPOND
+                tool_readiness = ToolReadiness.NOT_APPLICABLE
+                next_state = AgentState.IDLE
+            elif validation_info["is_ready"]:
+                tool_readiness = ToolReadiness.READY
+                next_state = AgentState.READY_TO_EXECUTE
+                action = AgentAction.EXECUTE_TOOL if self._is_confirmation(user_message) else AgentAction.CONTINUE
+            else:
+                action = AgentAction.CLARIFY
+                tool_readiness = ToolReadiness.NOT_READY
+                next_state = AgentState.WAITING_FOR_USER
+
+            return DecisionOutput(
+                action=action,
+                tool_readiness=tool_readiness,
+                selected_tool=selected_tool,
+                clarification_message=None,
+                clarification_reason=None,
+                required_missing_fields=required_missing,
+                optional_missing_fields=optional_missing,
+                decision_confidence=0.7,
+                next_state=next_state,
+                reset_context=False,
+            )
         
         messages = [
             {"role": "system", "content": decision_prompt_template},
@@ -150,7 +188,7 @@ class AgentDecisionService:
         try:
             output: DecisionOutput = await llm.generate_structured(messages=messages, schema=DecisionOutput)
             
-            from app.shared.enums import ToolReadiness, AgentAction, AgentState
+            from app.shared.enums import ToolReadiness, AgentState
             from app.exceptions.base import WorkflowInvariantError
             
             reset_context = False
@@ -165,24 +203,24 @@ class AgentDecisionService:
                         reset_context = True
                         pending_tool_name = intent
                         
-            # Check if starting a completely new interaction after previous completion
+            # Check if starting a completely new complaint after previous completion
             if state.get("conversation_status") == "COMPLETED" or getattr(state.get("conversation_status"), "value", None) == "COMPLETED":
-                if intent == "log_interaction":
+                if intent == "save_complaint":
                     if self._is_new_interaction_request(user_message) or self._is_yes_to_new_interaction_prompt(user_message, metadata):
                         logger.info(f"[{state.get('request_id')}] DecisionService: Starting new {intent} workflow, requesting context reset.")
                         reset_context = True
                         pending_tool_name = intent
                     else:
-                        logger.info(f"[{state.get('request_id')}] DecisionService: Ignoring non-explicit new interaction shift; keeping active interaction context.")
-                        if metadata.get("active_interaction_id"):
-                            pending_tool_name = "edit_interaction"
-                elif intent == "edit_interaction":
+                        logger.info(f"[{state.get('request_id')}] DecisionService: Ignoring non-explicit new complaint shift; keeping active complaint context.")
+                        if metadata.get("active_complaint_id"):
+                            pending_tool_name = "edit_complaint"
+                elif intent == "edit_complaint":
                     logger.info(f"[{state.get('request_id')}] DecisionService: Editing the active completed interaction.")
                     pending_tool_name = intent
                 elif intent in ["conversation", "unknown", "Unknown"] and self._is_yes_to_new_interaction_prompt(user_message, metadata):
                     logger.info(f"[{state.get('request_id')}] DecisionService: User accepted prompt to start another interaction.")
                     reset_context = True
-                    pending_tool_name = "log_interaction"
+                    pending_tool_name = "save_complaint"
                     use_latest_extracted_for_reset = False
                     
             if reset_context and pending_tool_name:
@@ -200,14 +238,14 @@ class AgentDecisionService:
             if reset_context:
                 # Re-evaluate validation on what will be the fresh draft
                 latest_extracted = state.get("metadata", {}).get("latest_extracted_fields", {}) if use_latest_extracted_for_reset else {}
-                fresh_draft = draft_service.merge(InteractionDraft(), latest_extracted).updated_draft
+                fresh_draft = draft_service.merge(ComplaintDraft(), latest_extracted).updated_draft
                 validation_info = draft_service.validate_against_schema(fresh_draft, required_fields, optional_fields)
             
             draft_status = validation_info["status"].value
             required_missing = validation_info["required_missing"]
             optional_missing = validation_info["optional_missing"]
             
-            from app.shared.enums import ToolReadiness, AgentAction, AgentState, ToolName
+            from app.shared.enums import ToolReadiness, AgentState, ToolName
             from app.exceptions.base import WorkflowInvariantError
             
             # Deterministic workflow logic: LLM does not dictate action, tool_readiness, or next_state
@@ -234,7 +272,7 @@ class AgentDecisionService:
                     tool_readiness = ToolReadiness.READY
                     next_state = AgentState.READY_TO_EXECUTE
                     if (
-                        str(pending_tool_name) == "edit_interaction"
+                        str(pending_tool_name) == "edit_complaint"
                         and state.get("changed_fields")
                     ):
                         action = AgentAction.EXECUTE_TOOL
@@ -273,7 +311,7 @@ class AgentDecisionService:
             return output
         except Exception as e:
             logger.error(f"[{state.get('request_id')}] AgentDecisionService Error: {e}")
-            from app.shared.enums import AgentAction, ToolReadiness, AgentState
+            from app.shared.enums import ToolReadiness, AgentState
             # Fallback using deterministic rules instead of blind RESPOND
             # We already know validation_info!
             if intent == "conversation" or not intent:
@@ -282,7 +320,7 @@ class AgentDecisionService:
                 next_state = AgentState.IDLE
             else:
                 if validation_info["is_ready"]:
-                    action = AgentAction.EXECUTE_TOOL
+                    action = AgentAction.EXECUTE_TOOL if self._is_confirmation(state.get("user_message", "")) else AgentAction.CONTINUE
                     tool_readiness = ToolReadiness.READY
                     next_state = AgentState.READY_TO_EXECUTE
                 else:

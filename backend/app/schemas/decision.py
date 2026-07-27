@@ -14,4 +14,4 @@ class DecisionOutput(BaseModel):
     optional_missing_fields: List[str] = Field(default_factory=list, description="Fields that are optional for the selected tool and are missing.")
     decision_confidence: float = Field(..., description="Confidence score of the decision engine (0.0 to 1.0).")
     next_state: AgentState = Field(..., description="The next state the agent should transition to.")
-    reset_context: bool = Field(False, description="Flag indicating if the current interaction context should be reset.")
+    reset_context: bool = Field(False, description="Flag indicating if the current complaint context should be reset.")

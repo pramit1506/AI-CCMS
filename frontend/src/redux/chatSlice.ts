@@ -4,7 +4,7 @@ import { chatService } from '../services/chatService';
 import { RootState } from './store';
 import { conversationMapper } from '../services/conversationMapper';
 import { setClarificationRequired, setToolExecutionResult, setConversationStatus } from './agentSlice';
-import { setInteraction } from './interactionSlice';
+import { setComplaint } from './complaintSlice';
 
 interface ChatState {
   messages: ChatMessage[];
@@ -53,9 +53,9 @@ export const sendMessage = createAsyncThunk<
       }
       dispatch(setConversationStatus(mapped.conversationStatus));
 
-      // Dispatch mapped data to interactionSlice
-      dispatch(setInteraction({
-        draft: mapped.interactionDraft,
+      // Dispatch mapped data to complaintSlice
+      dispatch(setComplaint({
+        draft: mapped.complaintDraft,
         updatedFields: mapped.updatedFields
       }));
 

@@ -1,13 +1,13 @@
 import warnings
 from typing import Dict, Any
-from app.schemas.draft import InteractionDraft
+from app.schemas.draft import ComplaintDraft
 from app.services.draft_service import DraftService
 
-def merge_draft(existing_draft: InteractionDraft, extracted_fields: Dict[str, Any]) -> InteractionDraft:
+def merge_draft(existing_draft: ComplaintDraft, extracted_fields: Dict[str, Any]) -> ComplaintDraft:
     """
     DEPRECATED: Use DraftService.merge() instead.
     
-    Merge newly extracted fields into an existing InteractionDraft.
+    Merge newly extracted fields into an existing ComplaintDraft.
     """
     warnings.warn(
         "merge_draft is deprecated. Use DraftService().merge() instead.",
@@ -16,6 +16,6 @@ def merge_draft(existing_draft: InteractionDraft, extracted_fields: Dict[str, An
     )
     service = DraftService()
     if not existing_draft:
-        existing_draft = InteractionDraft()
+        existing_draft = ComplaintDraft()
     result = service.merge(existing_draft, extracted_fields)
     return result.updated_draft

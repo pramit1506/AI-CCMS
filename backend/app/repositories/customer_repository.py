@@ -2,16 +2,16 @@ from typing import Optional, List
 from sqlalchemy import select, func, asc, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.base_repository import BaseRepository
-from app.models.hcp import HCP
-from app.schemas.hcp import HCPCreate, HCPUpdate
+from app.models.customer import Customer
+from app.schemas.customer import CustomerCreate, CustomerUpdate
 
-class RepositoryHCP(BaseRepository[HCP, HCPCreate, HCPUpdate]):
-    async def get_by_hcp_code(self, db: AsyncSession, hcp_code: str) -> Optional[HCP]:
-        query = select(self.model).where(self.model.hcp_code == hcp_code)
+class RepositoryCustomer(BaseRepository[Customer, CustomerCreate, CustomerUpdate]):
+    async def get_by_customer_code(self, db: AsyncSession, customer_code: str) -> Optional[Customer]:
+        query = select(self.model).where(self.model.customer_code == customer_code)
         result = await db.execute(query)
         return result.scalar_one_or_none()
 
-    async def get_by_email(self, db: AsyncSession, email: str) -> Optional[HCP]:
+    async def get_by_email(self, db: AsyncSession, email: str) -> Optional[Customer]:
         query = select(self.model).where(self.model.email == email)
         result = await db.execute(query)
         return result.scalar_one_or_none()
@@ -23,17 +23,14 @@ class RepositoryHCP(BaseRepository[HCP, HCPCreate, HCPUpdate]):
         skip: int = 0,
         limit: int = 100,
         city: Optional[str] = None,
-        specialization: Optional[str] = None,
         is_active: Optional[bool] = None,
         sort_by: str = "created_at",
         sort_desc: bool = True
-    ) -> tuple[List[HCP], int]:
+    ) -> tuple[List[Customer], int]:
         query = select(self.model)
         
         if city:
             query = query.where(self.model.city.ilike(f"%{city}%"))
-        if specialization:
-            query = query.where(self.model.specialization.ilike(f"%{specialization}%"))
         if is_active is not None:
             query = query.where(self.model.is_active == is_active)
             
@@ -52,4 +49,4 @@ class RepositoryHCP(BaseRepository[HCP, HCPCreate, HCPUpdate]):
         
         return list(result.scalars().all()), total
 
-hcp_repository = RepositoryHCP(HCP)
+customer_repository = RepositoryCustomer(Customer)

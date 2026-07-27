@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, TypedDict
 from pydantic import BaseModel
-from app.schemas.draft import InteractionDraft
+from app.schemas.draft import ComplaintDraft
 from app.schemas.decision import DecisionOutput
 from app.shared.enums import AgentState, ToolName, ConversationStatus
 from app.schemas.memory import ClarificationState
@@ -13,7 +13,7 @@ class ToolSelectionOutput(BaseModel):
     tool_arguments: Optional[Dict[str, Any]] = None
 
 class GraphState(TypedDict):
-    interaction_draft: Optional[InteractionDraft]
+    complaint_draft: Optional[ComplaintDraft]
     changed_fields: Optional[List[str]]
     draft_status: Optional[str]
     conversation_id: str

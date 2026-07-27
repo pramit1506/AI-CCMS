@@ -13,7 +13,7 @@ class ConversationResponseMapper:
     @staticmethod
     def map_to_response(final_state: Dict[str, Any]) -> ConversationResponse:
         # Extract fields from final_state
-        draft = final_state.get("interaction_draft")
+        draft = final_state.get("complaint_draft")
         draft_status = final_state.get("draft_status")
         changed_fields_list = final_state.get("changed_fields") or []
         
@@ -84,7 +84,7 @@ class ConversationResponseMapper:
         return ConversationResponse(
             assistant_message=llm_response,
             conversation_id=final_state.get("conversation_id", ""),
-            interaction_draft=draft,
+            complaint_draft=draft,
             draft_status=draft_status, # DraftStatus is a string/enum, might need coercion if it's stored differently
             draft_changes=field_changes,
             clarification_state=final_state.get("clarification_state"),

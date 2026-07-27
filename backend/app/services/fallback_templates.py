@@ -9,12 +9,13 @@ class FallbackTemplateService:
     """Generates deterministic natural language responses from application state."""
     
     FIELD_PROMPTS = {
-        "interaction_type": "What type of interaction was it? (e.g. In person, virtual)",
-        "interaction_date": "When did this interaction happen?",
-        "status": "What was the status or outcome of the interaction?",
-        "discussion_summary": "Could you briefly summarize what was discussed?",
-        "hcp_name": "Which healthcare professional was this interaction with?",
-        "hcp_id": "Which healthcare professional was this interaction with?"
+        "customer_name": "Who reported the complaint?",
+        "complaint_source": "Was the complaint received by PDF, email, call, portal, or pasted text?",
+        "product_name": "Which product is the complaint about?",
+        "complaint_date": "What is the complaint date?",
+        "detailed_description": "Could you provide the detailed complaint description?",
+        "initial_severity": "What is the initial severity: critical, major, or minor?",
+        "priority": "What is the priority: high, medium, or low?"
     }
 
     @classmethod
@@ -32,13 +33,13 @@ class FallbackTemplateService:
                 missing_fields = clarification.missing_fields
 
         if not missing_fields:
-            return "I'm temporarily having trouble generating a natural response, but we can continue. What else would you like to add?"
+            return "I updated the complaint draft. What else would you like to add?"
 
         # Pick the first missing field to ask about
         target_field = missing_fields[0]
         specific_question = cls.FIELD_PROMPTS.get(target_field, f"Could you provide the {target_field.replace('_', ' ')}?")
         
-        return f"I'm temporarily having trouble generating a natural response, but we can continue logging your interaction. {specific_question}"
+        return specific_question
 
     @classmethod
     def generate_fallback_response(cls, state: GraphState) -> str:
@@ -48,16 +49,36 @@ class FallbackTemplateService:
         
         if action == AgentAction.CLARIFY:
             return cls.generate_clarification_response(state)
+        elif action == AgentAction.CONTINUE:
+            changed_fields = state.get("changed_fields") or []
+            if changed_fields:
+                pretty_fields = ", ".join(field.replace("_", " ") for field in changed_fields)
+                return f"Updated {pretty_fields}. Please review the form, then click Save Complaint when ready."
+            draft_status = state.get("draft_status")
+            if str(draft_status) == "READY" or (hasattr(draft_status, "value") and draft_status.value == "READY"):
+                return "I extracted the complaint details and generated the initial risk assessment. Please review the form, then click Save Complaint when ready."
+            return "I updated the complaint draft. Please provide any missing details so I can complete the form."
         elif action == AgentAction.EXECUTE_TOOL:
-            return "I'm temporarily having trouble generating a natural response, but I've successfully completed the action."
+            validation_errors = state.get("validation_errors") or []
+            if validation_errors:
+                return f"I could not complete the action: {', '.join(str(error) for error in validation_errors)}"
+            tool_result = state.get("tool_result") or {}
+            if isinstance(tool_result, dict):
+                message = tool_result.get("message")
+                complaint_number = tool_result.get("complaint_number")
+                if message:
+                    return str(message)
+                if complaint_number:
+                    return f"Complaint saved successfully. Reference number: {complaint_number}."
+            return "Action completed successfully."
         elif action == AgentAction.RESPOND:
             draft_status = state.get("draft_status")
             # DraftStatus might be a string or enum, handle both safely
             if str(draft_status) == "READY" or (hasattr(draft_status, "value") and draft_status.value == "READY"):
-                return "I'm temporarily having trouble generating a natural response, but I have everything I need. Should I proceed?"
-            return "I'm temporarily having trouble generating a natural response. How else can I help?"
+                return "The complaint draft is ready. Please review it and click Save Complaint when ready."
+            return "I updated the complaint workflow. How else can I help?"
         
         # Generic fallback
-        return "I'm temporarily having trouble generating a natural response. Could you please rephrase or continue?"
+        return "I updated the complaint workflow. Please continue with any additional details."
 
 fallback_templates = FallbackTemplateService()

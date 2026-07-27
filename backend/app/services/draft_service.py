@@ -1,27 +1,32 @@
 import copy
 from typing import Dict, Any, List, Tuple
-from app.schemas.draft import InteractionDraft, DraftUpdateResult, FieldMetadata
+from app.schemas.draft import ComplaintDraft, DraftUpdateResult, FieldMetadata
 from app.shared.enums import DraftStatus
 
 class DraftService:
     
     REQUIRED_FIELDS = [
-        "hcp_id",
-        "interaction_type",
-        "interaction_date",
-        "status",
-        "discussion_summary"
+        "customer_name",
+        "complaint_source",
+        "product_name",
+        "complaint_date",
     ]
     
     OPTIONAL_FIELDS = [
-        "hcp_name",
-        "interaction_time",
-        "topics_discussed",
-        "materials_shared",
-        "sentiment",
-        "follow_up_required",
-        "follow_up_date",
-        "attendees"
+        "customer_id",
+        "product_strength",
+        "batch_number",
+        "manufacturing_date",
+        "expiry_date",
+        "quantity_affected",
+        "complaint_type",
+        "detailed_description",
+        "initial_severity",
+        "priority",
+        "risk_classification",
+        "root_cause_recommendation",
+        "capa_recommendation",
+        "risk_reasoning",
     ]
 
     def _is_empty_value(self, val: Any) -> bool:
@@ -33,19 +38,15 @@ class DraftService:
             return True
         return False
 
-    def required_missing_fields(self, draft: InteractionDraft) -> List[str]:
+    def required_missing_fields(self, draft: ComplaintDraft) -> List[str]:
         missing = []
         for field in self.REQUIRED_FIELDS:
-            if field == "hcp_id":
-                if self._is_empty_value(getattr(draft, "hcp_id", None)) and self._is_empty_value(getattr(draft, "hcp_name", None)):
-                    missing.append("hcp_id")
-            else:
-                val = getattr(draft, field, None)
-                if self._is_empty_value(val):
-                    missing.append(field)
+            val = getattr(draft, field, None)
+            if self._is_empty_value(val):
+                missing.append(field)
         return missing
 
-    def optional_missing_fields(self, draft: InteractionDraft) -> List[str]:
+    def optional_missing_fields(self, draft: ComplaintDraft) -> List[str]:
         missing = []
         for field in self.OPTIONAL_FIELDS:
             val = getattr(draft, field, None)
@@ -53,10 +54,10 @@ class DraftService:
                 missing.append(field)
         return missing
 
-    def is_ready(self, draft: InteractionDraft) -> bool:
+    def is_ready(self, draft: ComplaintDraft) -> bool:
         return len(self.required_missing_fields(draft)) == 0
 
-    def calculate_status(self, draft: InteractionDraft) -> DraftStatus:
+    def calculate_status(self, draft: ComplaintDraft) -> DraftStatus:
         req_missing = self.required_missing_fields(draft)
         
         all_fields = self.REQUIRED_FIELDS + self.OPTIONAL_FIELDS
@@ -70,18 +71,14 @@ class DraftService:
             
         return DraftStatus.PARTIAL
 
-    def validate_against_schema(self, draft: InteractionDraft, required_fields: List[str], optional_fields: List[str]) -> Dict[str, Any]:
+    def validate_against_schema(self, draft: ComplaintDraft, required_fields: List[str], optional_fields: List[str]) -> Dict[str, Any]:
         """
         Validates the draft dynamically against specific required and optional fields.
         """
         req_missing = []
         for field in required_fields:
-            if field == "hcp_id":
-                if self._is_empty_value(getattr(draft, "hcp_id", None)) and self._is_empty_value(getattr(draft, "hcp_name", None)):
-                    req_missing.append("hcp_id")
-            else:
-                if self._is_empty_value(getattr(draft, field, None)):
-                    req_missing.append(field)
+            if self._is_empty_value(getattr(draft, field, None)):
+                req_missing.append(field)
                     
         opt_missing = []
         for field in optional_fields:
@@ -102,13 +99,13 @@ class DraftService:
             "optional_missing": opt_missing
         }
 
-    def validate(self, draft: InteractionDraft) -> Dict[str, Any]:
+    def validate(self, draft: ComplaintDraft) -> Dict[str, Any]:
         """
         Returns a summary of the validation state using the default fields.
         """
         return self.validate_against_schema(draft, self.REQUIRED_FIELDS, self.OPTIONAL_FIELDS)
 
-    def _apply_update(self, draft: InteractionDraft, updates: Dict[str, Any], merge_lists: bool = True) -> Tuple[InteractionDraft, List[str]]:
+    def _apply_update(self, draft: ComplaintDraft, updates: Dict[str, Any], merge_lists: bool = True) -> Tuple[ComplaintDraft, List[str]]:
         """
         Internal immutable update applier.
         """
@@ -150,10 +147,10 @@ class DraftService:
                         merged_data[key] = value
                         changed_fields.append(key)
         
-        updated_draft = InteractionDraft(**merged_data)
+        updated_draft = ComplaintDraft(**merged_data)
         return updated_draft, changed_fields
 
-    def merge(self, draft: InteractionDraft, extracted_fields: Dict[str, Any], metadata: Dict[str, FieldMetadata] = None) -> DraftUpdateResult:
+    def merge(self, draft: ComplaintDraft, extracted_fields: Dict[str, Any], metadata: Dict[str, FieldMetadata] = None) -> DraftUpdateResult:
         """
         Merges new extracted fields. Appends to lists, keeps existing valid data.
         """
@@ -168,7 +165,7 @@ class DraftService:
             merge_summary=f"Merged {len(changed_fields)} fields."
         )
 
-    def update_field(self, draft: InteractionDraft, field_name: str, value: Any, metadata: FieldMetadata = None) -> DraftUpdateResult:
+    def update_field(self, draft: ComplaintDraft, field_name: str, value: Any, metadata: FieldMetadata = None) -> DraftUpdateResult:
         """
         Explicitly update a single field. Overwrites existing lists.
         """
@@ -183,7 +180,7 @@ class DraftService:
             merge_summary=f"Updated field {field_name}."
         )
 
-    def remove_field(self, draft: InteractionDraft, field_name: str) -> DraftUpdateResult:
+    def remove_field(self, draft: ComplaintDraft, field_name: str) -> DraftUpdateResult:
         """
         Clears a field's value.
         """
@@ -202,14 +199,14 @@ class DraftService:
             if "field_metadata" in merged_data and field_name in merged_data["field_metadata"]:
                 del merged_data["field_metadata"][field_name]
 
-        updated_draft = InteractionDraft(**merged_data)
+        updated_draft = ComplaintDraft(**merged_data)
         return DraftUpdateResult(
             updated_draft=updated_draft,
             changed_fields=changed_fields,
             merge_summary=f"Removed field {field_name}."
         )
 
-    def correct_field(self, draft: InteractionDraft, field_name: str, value: Any, metadata: FieldMetadata = None) -> DraftUpdateResult:
+    def correct_field(self, draft: ComplaintDraft, field_name: str, value: Any, metadata: FieldMetadata = None) -> DraftUpdateResult:
         """
         Alias for update_field for conversational corrections.
         """

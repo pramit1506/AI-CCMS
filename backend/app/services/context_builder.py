@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 from app.graph.state import GraphState
 from app.services.conversation_memory import conversation_memory_service
-from app.schemas.draft import InteractionDraft
+from app.schemas.draft import ComplaintDraft
 from app.schemas.memory import ClarificationState, ConversationSummary
 import json
 from datetime import date
@@ -24,29 +24,29 @@ class ContextBuilder:
         # Gather data from memory service
         summary = await conversation_memory_service.get_summary(conversation_id)
         
-        # Get metadata to determine interaction boundaries
+        # Get metadata to determine complaint boundaries
         metadata = await conversation_memory_service.get_metadata(conversation_id)
         state_metadata = state.get("metadata", {})
-        start_idx = state_metadata.get("current_interaction_start_idx", 0)
+        start_idx = state_metadata.get("current_complaint_start_idx", 0)
         
-        # Calculate how many messages belong to the current interaction
+        # Calculate how many messages belong to the current complaint
         current_message_count = metadata.message_count
-        messages_in_current_interaction = max(0, current_message_count - start_idx)
+        messages_in_current_complaint = max(0, current_message_count - start_idx)
         
         # We always fetch a baseline limit, but if excluding history, we slice it
-        fetch_limit = messages_in_current_interaction if exclude_history and messages_in_current_interaction > 0 else 5
+        fetch_limit = messages_in_current_complaint if exclude_history and messages_in_current_complaint > 0 else 5
         # Fallback to at least fetching something if the math is 0, but slice logic will handle it
         recent_messages = await conversation_memory_service.get_recent_messages(conversation_id, limit=max(5, fetch_limit))
         
-        if exclude_history and messages_in_current_interaction > 0:
-            recent_messages = recent_messages[-messages_in_current_interaction:]
-        elif exclude_history and messages_in_current_interaction == 0:
+        if exclude_history and messages_in_current_complaint > 0:
+            recent_messages = recent_messages[-messages_in_current_complaint:]
+        elif exclude_history and messages_in_current_complaint == 0:
             recent_messages = []
             
         resolved_entities = await conversation_memory_service.repo.get_resolved_entities(conversation_id)
         
         # Gather data from current GraphState
-        draft = state.get("interaction_draft")
+        draft = state.get("complaint_draft")
         clarification = state.get("clarification_state")
         tool_result = state.get("tool_result")
         validation_errors = state.get("validation_errors")
@@ -107,8 +107,8 @@ class ContextBuilder:
         return f"### Conversation Metadata\n```json\n{metadata.model_dump_json(indent=2)}\n```"
 
     @staticmethod
-    def _format_draft(draft: InteractionDraft) -> str:
-        return f"### Current Interaction Draft\n```json\n{draft.model_dump_json(indent=2)}\n```"
+    def _format_draft(draft: ComplaintDraft) -> str:
+        return f"### Current Complaint Draft\n```json\n{draft.model_dump_json(indent=2)}\n```"
 
     @staticmethod
     def _format_clarification(clarification: ClarificationState) -> str:
