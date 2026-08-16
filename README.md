@@ -89,9 +89,9 @@ copy .env.example .env
 Update `backend/.env` with your local values:
 
 ```env
-DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:5432/ccms_db"
+DATABASE_URL="your database URL"
 GROQ_API_KEY="your-groq-api-key"
-DEFAULT_MODEL="llama-3.3-70b-versatile"
+DEFAULT_MODEL="qwen/qwen3.6-27b"
 ```
 
 Make sure the PostgreSQL database exists before starting the backend.
