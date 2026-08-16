@@ -4,8 +4,8 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: "your username"
+      POSTGRES_PASSWORD: "your password"
       POSTGRES_DB: hcp_crm
     ports:
       - "5432:5432"
